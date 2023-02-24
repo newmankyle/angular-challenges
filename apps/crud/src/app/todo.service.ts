@@ -4,18 +4,26 @@ import { randText } from '@ngneat/falso';
 import { BehaviorSubject } from 'rxjs';
 import { Todo } from './todo.model';
 
+interface TodoState {
+  todos: Todo[];
+  error?: boolean;
+}
+
 @Injectable()
 export class TodoService {
   private http = inject(HttpClient);
 
-  private _todos$ = new BehaviorSubject<Todo[]>([]);
-  todos$ = this._todos$.asObservable();
+  private _state$ = new BehaviorSubject<TodoState>({ todos: [] });
+  state$ = this._state$.asObservable();
 
   constructor() {
     this.http
       .get<Todo[]>('https://jsonplaceholder.typicode.com/todos')
-      .subscribe((todos) => {
-        this._todos$.next(todos);
+      .subscribe({
+        next: (todos) => {
+          this._state$.next({ todos });
+        },
+        error: () => this._state$.next({ todos: [], error: true }),
       });
   }
 
@@ -36,13 +44,19 @@ export class TodoService {
         }
       )
       .subscribe((todoUpdated: Todo) => {
-        const todos = this._todos$.getValue().map((todo) => {
+        const todos = this._state$.getValue().todos.map((todo) => {
           if (todo.id === todoUpdated.id) {
             return todoUpdated;
           }
           return todo;
         });
-        this._todos$.next(todos);
+        this._state$.next({ todos });
       });
+  }
+
+  remove(id: number) {
+    this.http
+      .delete<Todo[]>(`https://jsonplaceholder.typicode.com/todos/${id}`)
+      .subscribe((todos) => this._state$.next({ todos }));
   }
 }
