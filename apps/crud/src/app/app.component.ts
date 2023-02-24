@@ -13,7 +13,7 @@ import { TodoService } from './todo.service';
       <button (click)="update(todo)">Update</button>
     </div>
   `,
-  styles: [],
+  providers: [TodoService],
 })
 export class AppComponent {
   todoService = inject(TodoService);

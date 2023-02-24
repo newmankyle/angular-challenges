@@ -36,9 +36,13 @@ export class TodoService {
         }
       )
       .subscribe((todoUpdated: Todo) => {
-        const todos = this._todos$.getValue();
-        todos[todoUpdated.id - 1] = todoUpdated;
-        this._todos$.next([...todos]);
+        const todos = this._todos$.getValue().map((todo) => {
+          if (todo.id === todoUpdated.id) {
+            return todoUpdated;
+          }
+          return todo;
+        });
+        this._todos$.next(todos);
       });
   }
 }
