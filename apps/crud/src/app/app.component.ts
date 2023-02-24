@@ -8,7 +8,7 @@ import { TodoService } from './todo.service';
   imports: [CommonModule],
   selector: 'app-root',
   template: `
-    <div *ngFor="let todo of todos">
+    <div *ngFor="let todo of todoService.todos$ | async">
       {{ todo.title }}
       <button (click)="update(todo)">Update</button>
     </div>
@@ -16,13 +16,9 @@ import { TodoService } from './todo.service';
   styles: [],
 })
 export class AppComponent {
-  private todoService = inject(TodoService);
+  todoService = inject(TodoService);
 
-  todos!: Todo[];
-
-  constructor() {
-    this.todoService.todos$.subscribe((todos) => (this.todos = todos));
-  }
+  todos$ = this.todoService.todos$;
 
   update(todo: Todo) {
     this.todoService.update(todo);
