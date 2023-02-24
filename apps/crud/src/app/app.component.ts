@@ -9,12 +9,20 @@ import { TodoService } from './todo.service';
   imports: [CommonModule],
   selector: 'app-root',
   template: `
-    <ng-container *ngIf="show$ | async; else error">
-      <div *ngFor="let todo of todos$ | async">
-        {{ todo.title }}
-        <button (click)="update(todo)">Update</button>
-        <button (click)="remove(todo.id)">Delete</button>
-      </div>
+    <ng-container *ngIf="vm$ | async as state" [ngSwitch]="state">
+      <ng-container *ngSwitchCase="state.loading">
+        <p>LOADING</p>
+      </ng-container>
+      <ng-container *ngSwitchCase="state.error">
+        <p>Unable to load due to errors</p>
+      </ng-container>
+      <ng-container *ngSwitchDefault>
+        <div *ngFor="let todo of state.todos">
+          {{ todo.title }}
+          <button (click)="update(todo)">Update</button>
+          <button (click)="remove(todo.id)">Delete</button>
+        </div>
+      </ng-container>
     </ng-container>
 
     <ng-template #error>Unable to load due to errors</ng-template>
@@ -25,8 +33,9 @@ import { TodoService } from './todo.service';
 export class AppComponent {
   todoService = inject(TodoService);
 
-  todos$ = this.todoService.state$.pipe(map((state) => state.todos));
-  show$ = this.todoService.state$.pipe(map((state) => !state.error));
+  vm$ = this.todoService.state$;
+
+  sub = this.vm$.subscribe((state) => console.log(state));
 
   update(todo: Todo) {
     this.todoService.update(todo);
